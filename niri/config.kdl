@@ -1,0 +1,380 @@
+// -----------------------------------------------------------------------------
+// INPUT
+// -----------------------------------------------------------------------------
+input {
+    keyboard {
+        xkb {
+            layout "fr"
+        }
+        repeat-delay 200
+        repeat-rate 60
+    }
+
+    touchpad {
+        tap
+        tap-button-map "left-right-middle"
+        click-method "clickfinger"
+        dwt
+        drag true
+        drag-lock
+        natural-scroll
+        accel-speed 0.7
+        accel-profile "adaptive"
+        scroll-factor 1.0
+        scroll-method "two-finger"
+    }
+
+    mouse {
+        accel-speed 0.7
+        accel-profile "adaptive"
+    }
+
+    focus-follows-mouse
+}
+
+// -----------------------------------------------------------------------------
+// OUTPUT
+// -----------------------------------------------------------------------------
+output "eDP-1" {
+    // Exact mode: run `niri msg outputs` and copy the refresh rate it reports.
+    mode "1920x1200@60.000"
+    scale 1
+    transform "normal"
+    position x=0 y=0
+
+    variable-refresh-rate
+}
+
+// -----------------------------------------------------------------------------
+// LAYOUT / APPEARANCE
+// -----------------------------------------------------------------------------
+layout {
+    // 5px gaps, plus 15px struts for the outer spacing.
+    gaps 5
+    struts {
+        left 15
+        right 15
+        top 15
+        bottom 15
+    }
+
+    center-focused-column "on-overflow"
+
+    default-column-width { proportion 0.8; }
+
+    preset-column-widths {
+        proportion 0.333333
+        proportion 0.5
+        proportion 0.666667
+        proportion 1.0
+    }
+
+    preset-window-heights {
+        proportion 0.333333
+        proportion 0.5
+        proportion 0.666667
+        proportion 1.0
+    }
+
+    focus-ring {
+        off
+    }
+
+    // 1px translucent white border
+    border {
+        width 1
+        active-color "#ffffff66"
+        inactive-color "#ffffff66"
+        urgent-color "#ffffff66"
+    }
+
+    shadow {
+        on
+        softness 8
+        spread 20
+        offset x=0 y=4
+        color "#00000050"
+    }
+}
+
+// -----------------------------------------------------------------------------
+// STARTUP
+// -----------------------------------------------------------------------------
+spawn-sh-at-startup "sh ~/.config/niri/scripts/gtk-theme.sh"
+spawn-at-startup "waybar"
+spawn-at-startup "mako"
+spawn-sh-at-startup "swaybg -i ~/.config/niri/wallpaper/wallflower.png -m fill"
+spawn-at-startup "swayidle" "-w"
+spawn-at-startup "lxqt-policykit-agent"
+spawn-at-startup "nm-applet"
+spawn-at-startup "blueman-applet"
+spawn-sh-at-startup "sh ~/.config/niri/scripts/portal-env.sh"
+
+// GTK cursor, set separately from the compositor cursor.
+spawn-at-startup "gsettings" "set" "org.gnome.desktop.interface" "cursor-theme" "Adwaita"
+spawn-at-startup "gsettings" "set" "org.gnome.desktop.interface" "cursor-size" "24"
+
+hotkey-overlay {
+    skip-at-startup
+    hide-not-bound
+}
+
+// No client-side decorations, so border, corners and shadow stay consistent.
+prefer-no-csd
+
+screenshot-path "~/Pictures/Screenshots/Screenshot from %Y-%m-%d %H-%M-%S.png"
+
+overview {
+    backdrop-color "#0b0d12"
+    workspace-shadow {
+        off
+    }
+}
+
+// -----------------------------------------------------------------------------
+// ANIMATIONS
+// Easing curve: cubic-bezier(0.215, 0.61, 0.355, 1).
+// -----------------------------------------------------------------------------
+animations {
+    workspace-switch {
+        duration-ms 250
+        curve "cubic-bezier" 0.215 0.61 0.355 1
+    }
+
+    horizontal-view-movement {
+        duration-ms 150
+        curve "cubic-bezier" 0.215 0.61 0.355 1
+    }
+
+    window-open {
+        duration-ms 150
+        curve "cubic-bezier" 0.215 0.61 0.355 1
+    }
+
+    window-close {
+        duration-ms 150
+        curve "cubic-bezier" 0.215 0.61 0.355 1
+    }
+
+    window-movement {
+        duration-ms 150
+        curve "cubic-bezier" 0.215 0.61 0.355 1
+    }
+
+    window-resize {
+        duration-ms 150
+        curve "cubic-bezier" 0.215 0.61 0.355 1
+    }
+}
+
+// -----------------------------------------------------------------------------
+// WINDOW RULES
+// -----------------------------------------------------------------------------
+
+// Default window geometry: full height, 8px corners.
+window-rule {
+    default-window-height { proportion 1.0; }
+    geometry-corner-radius 8
+    clip-to-geometry true
+}
+
+// Work around WezTerm's initial configure bug.
+window-rule {
+    match app-id=r#"^org\.wezfurlong\.wezterm$"#
+    default-column-width {}
+}
+
+// Keep common utility windows compact and floating.
+window-rule {
+    match app-id=r#"^(pavucontrol|nm-connection-editor|blueman-manager)$"#
+    open-floating true
+    default-column-width { proportion 0.48; }
+    default-window-height { proportion 0.48; }
+}
+
+// Open Firefox picture-in-picture as floating.
+window-rule {
+    match app-id=r#"firefox$"# title="^Picture-in-Picture$"
+    open-floating true
+    default-column-width { fixed 480; }
+    default-window-height { fixed 270; }
+}
+
+// -----------------------------------------------------------------------------
+// KEY BINDINGS
+// -----------------------------------------------------------------------------
+binds {
+    Mod+Shift+Slash { show-hotkey-overlay; }
+
+    // Applications
+    Mod+T hotkey-overlay-title="Open Terminal" { spawn "alacritty"; }
+    Mod+Return hotkey-overlay-title="Open Terminal" { spawn "alacritty"; }
+    Mod+D hotkey-overlay-title="Open Applications" { spawn "rofi" "-show" "drun"; }
+    Mod+E hotkey-overlay-title="Open Files" { spawn "pcmanfm"; }
+    Mod+B hotkey-overlay-title="Open Browser" { spawn "firefox"; }
+    Mod+V hotkey-overlay-title="Open Virtual Machine Manager" { spawn "virt-manager"; }
+    Mod+C hotkey-overlay-title="Open Code" { spawn "code"; }
+    Mod+Space { toggle-window-floating; }
+    Mod+L hotkey-overlay-title="Lock Screen" { spawn "swaylock" "-f" "-c" "000000"; }
+
+    // Power menu and notifications
+    Mod+P repeat=false hotkey-overlay-title="Power Menu" { spawn-sh "sh ~/.config/niri/scripts/power-menu.sh"; }
+    Mod+N repeat=false hotkey-overlay-title="Restore Last Notification" { spawn "makoctl" "restore"; }
+    Mod+Shift+N repeat=false hotkey-overlay-title="Dismiss Notifications" { spawn "makoctl" "dismiss" "--all"; }
+
+    // Window management.
+    Mod+Q repeat=false { close-window; }
+    Mod+F { maximize-column; }
+    Mod+Shift+F { fullscreen-window; }
+    Mod+M { maximize-window-to-edges; }
+    Mod+Ctrl+F { expand-column-to-available-width; }
+    Mod+Alt+C { center-column; }
+    Mod+Ctrl+C { center-visible-columns; }
+    Mod+Shift+V { switch-focus-between-floating-and-tiling; }
+    Mod+W { toggle-column-tabbed-display; }
+
+    // Focus
+    Mod+Left  { focus-column-left; }
+    Mod+Right { focus-column-right; }
+    Mod+Up    { focus-window-up; }
+    Mod+Down  { focus-window-down; }
+
+    // Move windows/columns
+    Mod+Shift+Left  { move-column-left; }
+    Mod+Shift+Right { move-column-right; }
+    Mod+Shift+Up    { move-window-up; }
+    Mod+Shift+Down  { move-window-down; }
+
+    // HJKL move shortcuts
+    Mod+Shift+H { move-column-left; }
+    Mod+Shift+J { move-window-down; }
+    Mod+Shift+K { move-window-up; }
+    Mod+Shift+L { move-column-right; }
+
+    // Monitor navigation (Mod+Alt, since Mod+Shift moves windows)
+    Mod+Alt+Left  { focus-monitor-left; }
+    Mod+Alt+Right { focus-monitor-right; }
+    Mod+Alt+Up    { focus-monitor-up; }
+    Mod+Alt+Down  { focus-monitor-down; }
+    Mod+Ctrl+Shift+Left  { move-column-to-monitor-left; }
+    Mod+Ctrl+Shift+Right { move-column-to-monitor-right; }
+    Mod+Ctrl+Shift+Up    { move-column-to-monitor-up; }
+    Mod+Ctrl+Shift+Down  { move-column-to-monitor-down; }
+
+    Mod+Home { focus-column-first; }
+    Mod+End  { focus-column-last; }
+    Mod+Ctrl+Home { move-column-to-first; }
+    Mod+Ctrl+End  { move-column-to-last; }
+
+    // Workspaces.
+    Mod+Page_Down { focus-workspace-down; }
+    Mod+Page_Up   { focus-workspace-up; }
+    Mod+U { focus-workspace-down; }
+    Mod+I { focus-workspace-up; }
+    Mod+Ctrl+Page_Down { move-column-to-workspace-down; }
+    Mod+Ctrl+Page_Up   { move-column-to-workspace-up; }
+    Mod+Ctrl+U { move-column-to-workspace-down; }
+    Mod+Ctrl+I { move-column-to-workspace-up; }
+    Mod+Shift+Page_Down { move-workspace-down; }
+    Mod+Shift+Page_Up   { move-workspace-up; }
+    Mod+Shift+U { move-workspace-down; }
+    Mod+Shift+I { move-workspace-up; }
+
+    Mod+1 { focus-workspace 1; }
+    Mod+2 { focus-workspace 2; }
+    Mod+3 { focus-workspace 3; }
+    Mod+4 { focus-workspace 4; }
+    Mod+5 { focus-workspace 5; }
+    Mod+6 { focus-workspace 6; }
+    Mod+7 { focus-workspace 7; }
+    Mod+8 { focus-workspace 8; }
+    Mod+9 { focus-workspace 9; }
+
+    // Move the focused column to a workspace
+    Mod+Shift+1 { move-column-to-workspace 1; }
+    Mod+Shift+2 { move-column-to-workspace 2; }
+    Mod+Shift+3 { move-column-to-workspace 3; }
+    Mod+Shift+4 { move-column-to-workspace 4; }
+    Mod+Shift+5 { move-column-to-workspace 5; }
+    Mod+Shift+6 { move-column-to-workspace 6; }
+    Mod+Shift+7 { move-column-to-workspace 7; }
+    Mod+Shift+8 { move-column-to-workspace 8; }
+    Mod+Shift+9 { move-column-to-workspace 9; }
+
+    // Ctrl+number aliases
+    Mod+Ctrl+1 { move-column-to-workspace 1; }
+    Mod+Ctrl+2 { move-column-to-workspace 2; }
+    Mod+Ctrl+3 { move-column-to-workspace 3; }
+    Mod+Ctrl+4 { move-column-to-workspace 4; }
+    Mod+Ctrl+5 { move-column-to-workspace 5; }
+    Mod+Ctrl+6 { move-column-to-workspace 6; }
+    Mod+Ctrl+7 { move-column-to-workspace 7; }
+    Mod+Ctrl+8 { move-column-to-workspace 8; }
+    Mod+Ctrl+9 { move-column-to-workspace 9; }
+
+    Mod+Tab { focus-workspace-previous; }
+
+    // Consume / expel windows between columns.
+    Mod+BracketLeft  { consume-or-expel-window-left; }
+    Mod+BracketRight { consume-or-expel-window-right; }
+    Mod+Comma  { consume-window-into-column; }
+    Mod+Period { expel-window-from-column; }
+
+    // Resize
+    Mod+R { switch-preset-column-width; }
+    Mod+Minus { set-column-width "-10%"; }
+    Mod+Equal { set-column-width "+10%"; }
+    Mod+Shift+Minus { set-window-height "-10%"; }
+    Mod+Shift+Equal { set-window-height "+10%"; }
+    Mod+Ctrl+R { reset-window-height; }
+    Mod+Ctrl+Shift+R { switch-preset-window-height; }
+
+    // Mouse-wheel navigation.
+    Mod+WheelScrollDown cooldown-ms=150 { focus-workspace-down; }
+    Mod+WheelScrollUp cooldown-ms=150 { focus-workspace-up; }
+    Mod+Ctrl+WheelScrollDown cooldown-ms=150 { move-column-to-workspace-down; }
+    Mod+Ctrl+WheelScrollUp cooldown-ms=150 { move-column-to-workspace-up; }
+    Mod+WheelScrollRight { focus-column-right; }
+    Mod+WheelScrollLeft  { focus-column-left; }
+    Mod+Ctrl+WheelScrollRight { move-column-right; }
+    Mod+Ctrl+WheelScrollLeft  { move-column-left; }
+
+    // Brightness, volume and media keys.
+    XF86MonBrightnessUp allow-when-locked=true { spawn "brightnessctl" "--class=backlight" "set" "+5%"; }
+    XF86MonBrightnessDown allow-when-locked=true { spawn "brightnessctl" "--class=backlight" "set" "5%-"; }
+    XF86AudioRaiseVolume allow-when-locked=true { spawn-sh "wpctl set-volume @DEFAULT_AUDIO_SINK@ 0.05+ -l 1.0"; }
+    XF86AudioLowerVolume allow-when-locked=true { spawn-sh "wpctl set-volume @DEFAULT_AUDIO_SINK@ 0.05-"; }
+    XF86AudioMute allow-when-locked=true { spawn-sh "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"; }
+    XF86AudioMicMute allow-when-locked=true { spawn-sh "wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle"; }
+    XF86AudioPlay allow-when-locked=true { spawn-sh "playerctl play-pause"; }
+    XF86AudioPause allow-when-locked=true { spawn-sh "playerctl play-pause"; }
+    XF86AudioStop allow-when-locked=true { spawn-sh "playerctl stop"; }
+    XF86AudioPrev allow-when-locked=true { spawn-sh "playerctl previous"; }
+    XF86AudioNext allow-when-locked=true { spawn-sh "playerctl next"; }
+
+    // Screen recording
+    Print { spawn-sh "wf-recorder -f \"$HOME/recording_$(date +%Y-%m-%d_%H:%M:%S).mp4\""; }
+    Shift+Print { spawn-sh "wf-recorder -g \"$(slurp)\" -f \"$HOME/recording_$(date +%Y-%m-%d_%H:%M:%S).mp4\""; }
+    Ctrl+Alt+Print { spawn-sh "killall -s SIGINT wf-recorder"; }
+
+    // Area screenshot to ~/Images, copied to the clipboard.
+    Mod+S { spawn-sh "file=\"$HOME/Images/screenshot-$(date +%F-%H%M%S).png\"; grim -g \"$(slurp)\" \"$file\" && wl-copy < \"$file\""; }
+    Ctrl+Print { screenshot-screen; }
+    Alt+Print { screenshot-window; }
+
+    // Reload config
+    Mod+Shift+R { spawn-sh "niri msg action load-config-file --path \"$HOME/.config/niri/config.kdl\""; }
+
+    // Session controls
+    Mod+Escape allow-inhibiting=false { toggle-keyboard-shortcuts-inhibit; }
+    Super+Alt+S allow-when-locked=true hotkey-overlay-title=null { spawn-sh "pkill orca || exec orca"; }
+    Mod+Shift+P { power-off-monitors; }
+    Mod+Shift+Q { quit skip-confirmation=true; }
+    Mod+Ctrl+Shift+E { quit; }
+    Ctrl+Alt+Delete { quit; }
+}
+
+cursor {
+    xcursor-theme "MacTahoe-light"
+    xcursor-size 30
+}
